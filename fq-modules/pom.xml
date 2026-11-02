@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.hczq</groupId>
+        <artifactId>fq-oauth</artifactId>
+        <version>1.0.0-RELEASE</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+    <artifactId>fq-modules</artifactId>
+    <name>fq-modules</name>
+    <packaging>pom</packaging>
+    <description>Aggregator for business modules</description>
+
+    <modules>
+        <!-- business: traditional IAM -->
+        <module>fq-module-platform</module>
+        <module>fq-module-user</module>
+        <module>fq-module-org</module>
+        <module>fq-module-tenant</module>
+        <module>fq-module-authn</module>
+        <module>fq-module-oauth2</module>
+        <module>fq-module-oauth-provider</module>
+        <module>fq-module-federation</module>
+        <module>fq-module-authz</module>
+        <module>fq-module-audit</module>
+
+        <!-- business: AI-era authorization -->
+        <module>fq-module-agent</module>
+        <module>fq-module-delegation</module>
+        <module>fq-module-mcp</module>
+        <module>fq-module-consent</module>
+        <module>fq-module-quota</module>
+        <module>fq-module-policy</module>
+    </modules>
+</project>

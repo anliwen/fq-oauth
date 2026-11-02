@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hczq.fq.org.mapper.DepartmentMapper">
+
+    <sql id="cols">id, name, parent_id, leader, sort, is_deleted, create_time, update_time</sql>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO t_departments (name, parent_id, leader, sort)
+        VALUES (#{name}, #{parentId}, #{leader}, #{sort})
+    </insert>
+
+    <update id="update">
+        UPDATE t_departments
+        SET name = #{name}, parent_id = #{parentId}, leader = #{leader}, sort = #{sort}, update_time = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <update id="softDelete">
+        UPDATE t_departments SET is_deleted = 1, update_time = NOW() WHERE id = #{id}
+    </update>
+
+    <select id="selectById" resultType="com.hczq.fq.org.entity.Department">
+        SELECT <include refid="cols"/> FROM t_departments WHERE id = #{id} AND is_deleted = 0
+    </select>
+
+    <select id="selectAllActive" resultType="com.hczq.fq.org.entity.Department">
+        SELECT <include refid="cols"/> FROM t_departments WHERE is_deleted = 0 ORDER BY sort, id
+    </select>
+
+    <select id="countByName" resultType="long">
+        SELECT COUNT(*) FROM t_departments
+        WHERE name = #{name}
+        <if test="excludeId != null">AND id != #{excludeId}</if>
+    </select>
+
+    <select id="countChildren" resultType="long">
+        SELECT COUNT(*) FROM t_departments WHERE parent_id = #{id} AND is_deleted = 0
+    </select>
+
+    <select id="countMembers" resultType="long">
+        SELECT COUNT(*) FROM t_users WHERE dept_id = #{id} AND is_deleted = 0
+    </select>
+
+    <select id="countMembersByDept" resultType="map">
+        SELECT dept_id AS deptId, COUNT(*) AS cnt
+        FROM t_users
+        WHERE is_deleted = 0 AND dept_id IS NOT NULL
+        GROUP BY dept_id
+    </select>
+</mapper>

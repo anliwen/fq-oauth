@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hczq.fq.delegation.mapper.DelegationMapper">
+    <sql id="cols">id, agent_id, grantor_user_id, tenant_id, resource, actions, resource_scope, status, expires_at, create_time, revoked_at</sql>
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO t_agent_delegations (agent_id, grantor_user_id, tenant_id, resource, actions, resource_scope, expires_at)
+        VALUES (#{agentId}, #{grantorUserId}, #{tenantId}, #{resource}, #{actions}, #{resourceScope}, #{expiresAt})
+    </insert>
+    <select id="selectByGrantor" resultType="com.hczq.fq.delegation.entity.AgentDelegation">
+        SELECT <include refid="cols"/> FROM t_agent_delegations WHERE grantor_user_id = #{grantorUserId} ORDER BY id DESC
+    </select>
+    <select id="selectById" resultType="com.hczq.fq.delegation.entity.AgentDelegation">
+        SELECT <include refid="cols"/> FROM t_agent_delegations WHERE id = #{id}
+    </select>
+    <update id="revoke">
+        UPDATE t_agent_delegations SET status = 'REVOKED', revoked_at = NOW()
+        WHERE id = #{id} AND grantor_user_id = #{userId} AND status = 'ACTIVE'
+    </update>
+    <update id="restore">
+        UPDATE t_agent_delegations SET status = 'ACTIVE', revoked_at = NULL
+        WHERE id = #{id} AND grantor_user_id = #{userId} AND status = 'REVOKED'
+          AND expires_at > NOW()
+    </update>
+    <select id="selectCandidates" resultType="com.hczq.fq.delegation.entity.AgentDelegation">
+        SELECT <include refid="cols"/> FROM t_agent_delegations
+        WHERE agent_id = #{agentId} AND tenant_id = #{tenantId} AND resource = #{resource}
+          AND status = 'ACTIVE' AND expires_at > NOW()
+          AND (FIND_IN_SET(#{action}, actions) > 0)
+          AND (resource_scope = '*' OR resource_scope = #{resourceId})
+        ORDER BY expires_at ASC
+    </select>
+</mapper>

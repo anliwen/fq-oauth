@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hczq.fq.agent.mapper.AgentMapper">
+    <sql id="cols">id, platform_id, tenant_id, owner_user_id, code, name, status, is_deleted, create_time, update_time</sql>
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO t_agents (platform_id, tenant_id, owner_user_id, code, name)
+        VALUES (#{platformId}, #{tenantId}, #{ownerUserId}, #{code}, #{name})
+    </insert>
+    <update id="updateStatus">
+        UPDATE t_agents SET status = #{status}, update_time = NOW() WHERE id = #{id} AND is_deleted = 0
+    </update>
+    <select id="selectById" resultType="com.hczq.fq.agent.entity.Agent">
+        SELECT <include refid="cols"/> FROM t_agents WHERE id = #{id} AND is_deleted = 0
+    </select>
+    <select id="selectByOwner" resultType="com.hczq.fq.agent.entity.Agent">
+        SELECT <include refid="cols"/> FROM t_agents WHERE owner_user_id = #{ownerUserId} AND is_deleted = 0 ORDER BY id DESC
+    </select>
+    <select id="countByPlatformAndCode" resultType="long">
+        SELECT COUNT(*) FROM t_agents WHERE platform_id = #{platformId} AND code = #{code}
+    </select>
+</mapper>

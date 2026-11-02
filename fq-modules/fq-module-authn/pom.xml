@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.hczq</groupId>
+        <artifactId>fq-modules</artifactId>
+        <version>1.0.0-RELEASE</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+    <artifactId>fq-module-authn</artifactId>
+    <name>fq-module-authn</name>
+    <description>Authentication: password, SMS, MFA, Passkey, sessions</description>
+    <dependencies>
+        <dependency><groupId>com.hczq</groupId><artifactId>fq-common</artifactId><version>${project.version}</version></dependency>
+        <dependency><groupId>com.hczq</groupId><artifactId>fq-starter-web</artifactId><version>${project.version}</version></dependency>
+        <dependency><groupId>com.hczq</groupId><artifactId>fq-starter-redis</artifactId><version>${project.version}</version></dependency>
+        <dependency><groupId>com.hczq</groupId><artifactId>fq-module-user</artifactId><version>${project.version}</version></dependency>
+        <dependency><groupId>com.hczq</groupId><artifactId>fq-module-authz</artifactId><version>${project.version}</version></dependency>
+        <dependency><groupId>cn.dev33</groupId><artifactId>sa-token-spring-boot3-starter</artifactId><version>1.46.0</version></dependency>
+        <!-- persist Sa-Token sessions/tokens in Redis (JSON serialization) -->
+        <dependency><groupId>cn.dev33</groupId><artifactId>sa-token-redis-jackson</artifactId><version>1.46.0</version></dependency>
+    </dependencies>
+</project>

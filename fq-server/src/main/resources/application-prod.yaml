@@ -1,0 +1,39 @@
+spring:
+  application:
+    name: fq-oauth
+  datasource:
+    # Placeholders: override via environment variables or replace with real values
+    url: jdbc:mysql://127.0.0.1:3306/db_fq_oauth?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+    username: root
+    password: 15033673366_Alw
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+      password:
+      database: 8
+      timeout: 5s
+
+mybatis:
+  mapper-locations: classpath*:mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+
+sa-token:
+  token-name: Authorization
+  token-prefix: Bearer
+  token-style: uuid
+  timeout: 7200
+  is-concurrent: true
+  is-share: false
+  is-read-cookie: false
+  is-print: false
+
+fq:
+  oauth:
+    federation:
+      github:
+        api-base: ${FQ_GITHUB_API_BASE:https://api.github.com}
+        client-id: ${FQ_GITHUB_CLIENT_ID:}
+        client-secret: ${FQ_GITHUB_CLIENT_SECRET:}

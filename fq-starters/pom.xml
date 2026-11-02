@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.hczq</groupId>
+        <artifactId>fq-oauth</artifactId>
+        <version>1.0.0-RELEASE</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+    <artifactId>fq-starters</artifactId>
+    <name>fq-starters</name>
+    <packaging>pom</packaging>
+    <description>Aggregator for framework starters</description>
+
+    <modules>
+        <module>fq-starter-web</module>
+        <module>fq-starter-mybatis</module>
+        <module>fq-starter-redis</module>
+        <module>fq-starter-security</module>
+        <module>fq-starter-mq</module>
+        <module>fq-starter-audit</module>
+        <module>fq-starter-ratelimit</module>
+        <module>fq-starter-crypto</module>
+        <module>fq-starter-tenant</module>
+    </modules>
+</project>

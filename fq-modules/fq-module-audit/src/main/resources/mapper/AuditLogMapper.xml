@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hczq.fq.audit.mapper.AuditLogMapper">
+  <resultMap id="AuditLogMap" type="com.hczq.fq.audit.entity.AuditLog">
+    <id property="id" column="id" />
+    <result property="operatorId" column="operator_id" />
+    <result property="action" column="action" />
+    <result property="method" column="method" />
+    <result property="path" column="path" />
+    <result property="target" column="target" />
+    <result property="result" column="result" />
+    <result property="statusCode" column="status_code" />
+    <result property="ip" column="ip" />
+    <result property="userAgent" column="user_agent" />
+    <result property="detail" column="detail" />
+    <result property="createTime" column="create_time" />
+    <result property="operatorName" column="operator_name" />
+    <result property="operatorUsername" column="operator_username" />
+  </resultMap>
+
+  <insert id="insert" parameterType="com.hczq.fq.audit.entity.AuditLog" useGeneratedKeys="true" keyProperty="id">
+    INSERT INTO t_audit_logs (operator_id, action, method, path, target, result, status_code, ip, user_agent, detail)
+    VALUES (#{operatorId}, #{action}, #{method}, #{path}, #{target}, #{result}, #{statusCode}, #{ip}, #{userAgent}, #{detail})
+  </insert>
+
+  <sql id="where">
+    WHERE 1 = 1
+    <if test="keyword != null and keyword != ''">
+      AND (u.username LIKE CONCAT('%', #{keyword}, '%')
+        OR u.full_name LIKE CONCAT('%', #{keyword}, '%')
+        OR l.action LIKE CONCAT('%', #{keyword}, '%')
+        OR l.path LIKE CONCAT('%', #{keyword}, '%')
+        OR l.target LIKE CONCAT('%', #{keyword}, '%')
+        OR l.ip LIKE CONCAT('%', #{keyword}, '%'))
+    </if>
+    <if test="action != null and action != ''">AND l.action = #{action}</if>
+    <if test="result != null and result != ''">AND l.result = #{result}</if>
+  </sql>
+
+  <select id="selectPage" resultMap="AuditLogMap">
+    SELECT l.*, u.full_name AS operator_name, u.username AS operator_username
+    FROM t_audit_logs l LEFT JOIN t_users u ON u.id = l.operator_id
+    <include refid="where" />
+    ORDER BY l.id DESC
+    LIMIT #{limit} OFFSET #{offset}
+  </select>
+
+  <select id="countPage" resultType="long">
+    SELECT COUNT(*) FROM t_audit_logs l LEFT JOIN t_users u ON u.id = l.operator_id
+    <include refid="where" />
+  </select>
+</mapper>

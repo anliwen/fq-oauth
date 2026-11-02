@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hczq.fq.platform.mapper.PlatformMapper">
+
+    <!-- `desc` is a reserved word in SQL, so it is always back-quoted. -->
+    <sql id="cols">id, code, name, `desc`, is_system, is_deleted, create_time, update_time</sql>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO t_platforms (code, name, `desc`, is_system)
+        VALUES (#{code}, #{name}, #{desc}, #{isSystem})
+    </insert>
+
+    <update id="update">
+        UPDATE t_platforms SET name = #{name}, `desc` = #{desc}, update_time = NOW() WHERE id = #{id}
+    </update>
+
+    <update id="softDelete">
+        UPDATE t_platforms SET is_deleted = 1, update_time = NOW() WHERE id = #{id}
+    </update>
+
+    <select id="selectById" resultType="com.hczq.fq.platform.entity.Platform">
+        SELECT <include refid="cols"/> FROM t_platforms WHERE id = #{id} AND is_deleted = 0
+    </select>
+
+    <select id="selectAll" resultType="com.hczq.fq.platform.entity.Platform">
+        SELECT <include refid="cols"/> FROM t_platforms WHERE is_deleted = 0 ORDER BY id
+    </select>
+
+    <select id="countByCode" resultType="long">
+        SELECT COUNT(*) FROM t_platforms WHERE code = #{code}
+    </select>
+
+    <select id="countRoles" resultType="long">
+        SELECT COUNT(*) FROM t_roles WHERE platform_id = #{platformId} AND is_deleted = 0
+    </select>
+</mapper>

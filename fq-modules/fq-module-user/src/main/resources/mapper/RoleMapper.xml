@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hczq.fq.user.mapper.RoleMapper">
+
+    <!-- `desc` is a reserved word in SQL, so it is always back-quoted. data_scope is intentionally not mapped. -->
+    <sql id="select">
+        SELECT r.id, r.platform_id, p.code AS platform_code, p.name AS platform_name,
+               r.code, r.name, r.`desc`, r.is_system, r.is_deleted, r.create_time, r.update_time
+        FROM t_roles r
+        JOIN t_platforms p ON p.id = r.platform_id
+    </sql>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO t_roles (platform_id, code, name, `desc`, is_system)
+        VALUES (#{platformId}, #{code}, #{name}, #{desc}, #{isSystem})
+    </insert>
+
+    <update id="update">
+        UPDATE t_roles SET name = #{name}, `desc` = #{desc}, update_time = NOW() WHERE id = #{id}
+    </update>
+
+    <update id="softDelete">
+        UPDATE t_roles SET is_deleted = 1, update_time = NOW() WHERE id = #{id}
+    </update>
+
+    <select id="selectById" resultType="com.hczq.fq.user.entity.Role">
+        <include refid="select"/> WHERE r.id = #{id} AND r.is_deleted = 0
+    </select>
+
+    <select id="selectByPlatformAndCode" resultType="com.hczq.fq.user.entity.Role">
+        <include refid="select"/> WHERE r.platform_id = #{platformId} AND r.code = #{code} AND r.is_deleted = 0
+    </select>
+
+    <select id="selectAll" resultType="com.hczq.fq.user.entity.Role">
+        <include refid="select"/> WHERE r.is_deleted = 0 ORDER BY r.platform_id, r.id
+    </select>
+
+    <select id="selectByIds" resultType="com.hczq.fq.user.entity.Role">
+        <include refid="select"/> WHERE r.is_deleted = 0 AND r.id IN
+        <foreach collection="ids" item="i" open="(" separator="," close=")">#{i}</foreach>
+    </select>
+
+    <select id="selectByUserId" resultType="com.hczq.fq.user.entity.Role">
+        <include refid="select"/>
+        JOIN t_user_roles ur ON ur.role_id = r.id
+        WHERE ur.user_id = #{userId} AND r.is_deleted = 0
+        ORDER BY r.id
+    </select>
+
+    <select id="selectCodesByUserIdInPlatform" resultType="string">
+        SELECT r.code
+        FROM t_roles r
+        JOIN t_platforms p ON p.id = r.platform_id AND p.code = #{platformCode} AND p.is_deleted = 0
+        JOIN t_user_roles ur ON ur.role_id = r.id
+        WHERE ur.user_id = #{userId} AND r.is_deleted = 0
+        ORDER BY r.id
+    </select>
+
+    <select id="countUsers" resultType="long">
+        SELECT COUNT(*) FROM t_user_roles WHERE role_id = #{roleId}
+    </select>
+</mapper>

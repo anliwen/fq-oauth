@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hczq.fq.authz.mapper.PermissionMapper">
+
+    <sql id="cols">id, platform_id, parent_id, code, name, type, sort, is_system, create_time, update_time</sql>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO t_permissions (platform_id, parent_id, code, name, type, sort, is_system)
+        VALUES (#{platformId}, #{parentId}, #{code}, #{name}, #{type}, #{sort}, #{isSystem})
+    </insert>
+
+    <update id="update">
+        UPDATE t_permissions SET name = #{name}, sort = #{sort}, update_time = NOW() WHERE id = #{id}
+    </update>
+
+    <delete id="delete">
+        DELETE FROM t_permissions WHERE id = #{id}
+    </delete>
+
+    <select id="selectById" resultType="com.hczq.fq.authz.entity.Permission">
+        SELECT <include refid="cols"/> FROM t_permissions WHERE id = #{id}
+    </select>
+
+    <select id="selectByPlatformAndCode" resultType="com.hczq.fq.authz.entity.Permission">
+        SELECT <include refid="cols"/> FROM t_permissions WHERE platform_id = #{platformId} AND code = #{code}
+    </select>
+
+    <select id="selectByPlatform" resultType="com.hczq.fq.authz.entity.Permission">
+        SELECT <include refid="cols"/> FROM t_permissions WHERE platform_id = #{platformId} ORDER BY sort, id
+    </select>
+
+    <select id="countChildren" resultType="long">
+        SELECT COUNT(*) FROM t_permissions WHERE parent_id = #{id}
+    </select>
+
+    <select id="selectIdsByRole" resultType="long">
+        SELECT permission_id FROM t_role_permissions WHERE role_id = #{roleId} ORDER BY permission_id
+    </select>
+
+    <delete id="deleteGrants">
+        DELETE FROM t_role_permissions WHERE role_id = #{roleId}
+    </delete>
+
+    <insert id="insertGrants">
+        INSERT INTO t_role_permissions (role_id, permission_id) VALUES
+        <foreach collection="ids" item="i" separator=",">(#{roleId}, #{i})</foreach>
+    </insert>
+
+    <select id="selectGrantedCodes" resultType="string">
+        SELECT DISTINCT pm.code
+        FROM t_permissions pm
+        JOIN t_platforms p ON p.id = pm.platform_id AND p.code = #{platformCode} AND p.is_deleted = 0
+        JOIN t_role_permissions rp ON rp.permission_id = pm.id
+        JOIN t_roles r ON r.id = rp.role_id AND r.platform_id = pm.platform_id AND r.is_deleted = 0
+        JOIN t_user_roles ur ON ur.role_id = r.id
+        WHERE ur.user_id = #{userId}
+    </select>
+
+    <select id="selectAllCodes" resultType="string">
+        SELECT pm.code
+        FROM t_permissions pm
+        JOIN t_platforms p ON p.id = pm.platform_id AND p.code = #{platformCode} AND p.is_deleted = 0
+    </select>
+</mapper>
