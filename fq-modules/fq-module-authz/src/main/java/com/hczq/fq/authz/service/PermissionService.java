@@ -98,6 +98,14 @@ public class PermissionService {
     @Transactional
     public PermissionNode update(Long id, PermissionUpdate req) {
         Permission p = load(id);
+        if (req.code() != null) {
+            Permission duplicate = permissionMapper.selectByPlatformAndCode(p.getPlatformId(), req.code());
+            if (duplicate != null && !duplicate.getId().equals(id)) {
+                throw BusinessException.conflict("该平台下权限编码已存在");
+            }
+            p.setCode(req.code());
+        }
+        if (req.type() != null) p.setType(req.type());
         if (req.name() != null) p.setName(req.name());
         if (req.sort() != null) p.setSort(req.sort());
         permissionMapper.update(p);
@@ -183,10 +191,15 @@ public class PermissionService {
      * platform were granted.
      */
     public Set<String> permissionsOf(Long userId) {
-        List<String> roles = roleMapper.selectCodesByUserIdInPlatform(userId, Platform.CENTER_CODE);
-        if (roles.contains(Platform.CENTER_ADMIN_ROLE)) {
-            return new TreeSet<>(permissionMapper.selectAllCodes(Platform.CENTER_CODE));
+        return permissionsOf(userId, Platform.CENTER_CODE);
+    }
+
+    /** Permission codes held through roles on the specified platform. */
+    public Set<String> permissionsOf(Long userId, String platformCode) {
+        List<String> roleCodes = roleMapper.selectCodesByUserIdInPlatform(userId, platformCode);
+        if (Platform.CENTER_CODE.equals(platformCode) && roleCodes.contains(Platform.CENTER_ADMIN_ROLE)) {
+            return new TreeSet<>(permissionMapper.selectAllCodes(platformCode));
         }
-        return new TreeSet<>(permissionMapper.selectGrantedCodes(userId, Platform.CENTER_CODE));
+        return new TreeSet<>(permissionMapper.selectGrantedCodes(userId, platformCode));
     }
 }

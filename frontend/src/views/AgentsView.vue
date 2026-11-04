@@ -8,6 +8,7 @@ import { notify } from '../composables/toast'
 import Modal from '../components/Modal.vue'
 import Panel from '../components/Panel.vue'
 import StatCard from '../components/StatCard.vue'
+import BaseSelect from '../components/BaseSelect.vue'
 
 const rows = ref([])
 const loading = ref(false)
@@ -58,7 +59,7 @@ async function changeStatus() {
     </table><div v-if="!rows.length" class="empty">{{ loading ? '正在加载…' : '暂无数据' }}</div>
   </Panel>
   <Modal v-if="dlg.open" title="登记 Agent" width="480px" @close="dlg.open = false"><form id="agent-form" novalidate @submit.prevent="save">
-    <div class="field"><label>所属平台<span class="req">*</span></label><select v-model="form.platformId" class="select"><option value="" disabled>请选择平台</option><option v-for="p in platformOptions" :key="p.value" :value="p.value">{{ p.label }}</option></select></div>
+    <div class="field"><label>所属平台<span class="req">*</span></label><BaseSelect v-model="form.platformId" :options="platformOptions" placeholder="请选择平台" /></div>
     <div class="field"><label>租户标识<span class="req">*</span></label><input v-model="form.tenantId" class="input mono" maxlength="64" placeholder="tenant-001" /></div>
     <div class="field"><label>Agent 编码<span class="req">*</span></label><input v-model="form.code" class="input mono" maxlength="64" placeholder="finance-assistant" /></div>
     <div class="field"><label>名称<span class="req">*</span></label><input v-model="form.name" class="input" maxlength="128" placeholder="财务助手" /></div>

@@ -20,8 +20,6 @@ const loading = ref(false)
 const platformOptions = computed(() =>
   lookups.platforms.map(p => ({ value: p.id, label: `${p.name}（${p.code}）` })))
 const rows = computed(() => flattenTree(tree.value))
-// a platform has one root: once it exists, new nodes go under it
-const hasRoot = computed(() => tree.value.length > 0)
 const count = type => rows.value.filter(r => r.type === type).length
 
 async function loadTree() {
@@ -52,7 +50,6 @@ const typeOptions = computed(() =>
   childTypes(dlg.parent).map(t => ({ value: t, label: TYPE_LABEL[t] })))
 
 function openCreate(parent) {
-  if (!parent && hasRoot.value) return
   const types = childTypes(parent)
   Object.assign(form, { code: '', name: '', type: types[0], sort: 0 })
   Object.assign(dlg, { open: true, editing: null, parent, error: '' })
@@ -65,14 +62,14 @@ function openEdit(node) {
 async function save() {
   dlg.error = ''
   if (!form.name.trim()) return (dlg.error = '请填写名称')
-  if (!dlg.editing && !/^[a-z0-9][a-z0-9:_-]*$/.test(form.code.trim())) {
+  if (!/^[a-z0-9][a-z0-9:_-]*$/.test(form.code.trim())) {
     return (dlg.error = '权限编码只能包含小写字母、数字、冒号、下划线和连字符')
   }
   dlg.saving = true
   try {
     const sort = Number.isFinite(Number(form.sort)) ? Number(form.sort) : 0
     if (dlg.editing) {
-      await permissionApi.update(dlg.editing.id, { name: form.name.trim(), sort })
+      await permissionApi.update(dlg.editing.id, { code: form.code.trim(), name: form.name.trim(), type: form.type, sort })
       notify.ok('权限已更新')
     } else {
       await permissionApi.create({
@@ -120,9 +117,7 @@ async function confirmDelete() {
     <template #actions>
       <BaseSelect v-model="platformId" class="plat" :options="platformOptions" placeholder="选择平台" aria-label="平台" />
       <button class="btn" :disabled="loading || platformId === ''" @click="loadTree">↻ 刷新</button>
-      <span v-if="canCreate" :title="hasRoot ? '已存在根节点，请在它下面添加子节点' : ''">
-        <button class="btn primary" :disabled="platformId === '' || loading || hasRoot" @click="openCreate(null)">＋ 新建根节点</button>
-      </span>
+      <button v-if="canCreate" class="btn primary" :disabled="platformId === '' || loading" @click="openCreate(null)">＋ 新建根节点</button>
     </template>
 
     <table class="tbl">
@@ -159,15 +154,13 @@ async function confirmDelete() {
     <form id="perm-form" novalidate @submit.prevent="save">
       <div class="field">
         <label for="pm-type">类型</label>
-        <BaseSelect v-if="!dlg.editing" id="pm-type" v-model="form.type" :options="typeOptions" />
-        <input v-else id="pm-type" class="input" :value="TYPE_LABEL[form.type]" disabled />
+        <BaseSelect id="pm-type" v-model="form.type" :options="typeOptions" />
         <small class="muted">类型不限上下级关系；树最多 {{ MAX_DEPTH }} 层</small>
       </div>
       <div class="field">
         <label for="pm-code">权限编码<span class="req">*</span></label>
-        <input id="pm-code" v-model="form.code" class="input mono" maxlength="64" placeholder="如 user:export"
-               :disabled="!!dlg.editing" />
-        <small class="muted">{{ dlg.editing ? '编码创建后不可修改，代码里引用的就是它' : '小写字母、数字、冒号、下划线、连字符；同一平台内唯一' }}</small>
+        <input id="pm-code" v-model="form.code" class="input mono" maxlength="64" placeholder="如 user:export" />
+        <small class="muted">小写字母、数字、冒号、下划线、连字符；同一平台内唯一。修改后需同步更新代码中的权限引用</small>
       </div>
       <div class="field">
         <label for="pm-name">名称<span class="req">*</span></label>

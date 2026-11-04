@@ -3,7 +3,12 @@ package com.hczq.fq.oauth2.service;
 import com.hczq.fq.common.exception.BusinessException;
 import com.hczq.fq.oauth2.mapper.OAuthMapper;
 import com.hczq.fq.oauth2.dto.TokenRequest;
+import com.hczq.fq.authz.service.PermissionService;
+import com.hczq.fq.user.entity.User;
+import com.hczq.fq.user.mapper.RoleMapper;
+import com.hczq.fq.user.mapper.UserMapper;
 import com.hczq.fq.user.security.CurrentUser;
+import com.hczq.fq.user.security.PasswordService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -153,6 +158,89 @@ class OAuthServiceTest {
                 "verifier-verifier-verifier-verifier-verifier-verifier", null, null)));
 
         assertEquals("授权码已使用或过期", error.getMessage());
+    }
+
+    @Test
+    void directLoginRequiresRoleOnClientPlatformAndReturnsThatPlatformsIdentity() throws Exception {
+        OAuthMapper oauthMapper = mock(OAuthMapper.class);
+        UserMapper userMapper = mock(UserMapper.class);
+        RoleMapper roleMapper = mock(RoleMapper.class);
+        PermissionService permissionService = mock(PermissionService.class);
+        PasswordService passwordService = mock(PasswordService.class);
+        Map<String, Object> application = new java.util.HashMap<>(client(false));
+        application.put("client_kind", "APPLICATION");
+        application.put("platform_id", 7L);
+        application.put("platform_code", "third-party");
+        when(oauthMapper.selectClient(CLIENT_ID)).thenReturn(application);
+        when(oauthMapper.selectClientPlatform(7L)).thenReturn(Map.of("platform_id", 7L, "platform_code", "third-party"));
+        User user = activeUser();
+        when(userMapper.selectByUsername("alice")).thenReturn(user);
+        when(passwordService.verify("password", "hash")).thenReturn(true);
+        when(roleMapper.selectCodesByUserIdInPlatform(31L, "third-party")).thenReturn(List.of("operator"));
+        when(permissionService.permissionsOf(31L, "third-party")).thenReturn(java.util.Set.of("report:view"));
+        OAuthService directService = new OAuthService(oauthMapper, mock(CurrentUser.class), null, userMapper,
+                roleMapper, permissionService, passwordService, null);
+
+        Map<String, Object> result = directService.directLogin(CLIENT_ID, CLIENT_SECRET, "alice", "password");
+
+        assertEquals(List.of("operator"), result.get("roles"));
+        assertEquals(java.util.Set.of("report:view"), result.get("permissions"));
+        assertNotNull(result.get("access_token"));
+        verify(roleMapper).selectCodesByUserIdInPlatform(31L, "third-party");
+        verify(userMapper).updateLastLogin(eq(31L), any());
+    }
+
+    @Test
+    void directLoginRejectsUserWithoutRoleOnClientPlatformBeforeIssuingTokens() throws Exception {
+        OAuthMapper oauthMapper = mock(OAuthMapper.class);
+        UserMapper userMapper = mock(UserMapper.class);
+        RoleMapper roleMapper = mock(RoleMapper.class);
+        PasswordService passwordService = mock(PasswordService.class);
+        Map<String, Object> application = new java.util.HashMap<>(client(false));
+        application.put("client_kind", "APPLICATION");
+        application.put("platform_id", 7L);
+        application.put("platform_code", "third-party");
+        when(oauthMapper.selectClient(CLIENT_ID)).thenReturn(application);
+        when(oauthMapper.selectClientPlatform(7L)).thenReturn(Map.of("platform_id", 7L, "platform_code", "third-party"));
+        when(userMapper.selectByUsername("alice")).thenReturn(activeUser());
+        when(passwordService.verify("password", "hash")).thenReturn(true);
+        when(roleMapper.selectCodesByUserIdInPlatform(31L, "third-party")).thenReturn(List.of());
+        OAuthService directService = new OAuthService(oauthMapper, mock(CurrentUser.class), null, userMapper,
+                roleMapper, mock(PermissionService.class), passwordService, null);
+
+        BusinessException error = assertThrows(BusinessException.class,
+                () -> directService.directLogin(CLIENT_ID, CLIENT_SECRET, "alice", "password"));
+
+        assertEquals(403, error.getStatus());
+        verify(userMapper, never()).updateLastLogin(eq(31L), any());
+        verify(oauthMapper, never()).insertToken(any());
+    }
+
+    @Test
+    void directLoginRejectsUnknownClientBeforeAnyOtherLookup() {
+        OAuthMapper oauthMapper = mock(OAuthMapper.class);
+        OAuthService directService = new OAuthService(oauthMapper, mock(CurrentUser.class));
+
+        BusinessException error = assertThrows(BusinessException.class,
+                () -> directService.directLogin(CLIENT_ID, CLIENT_SECRET, "alice", "password"));
+
+        assertEquals(401, error.getStatus());
+        assertEquals("客户端认证失败", error.getMessage());
+        verify(oauthMapper).selectClient(CLIENT_ID);
+        verifyNoMoreInteractions(oauthMapper);
+    }
+
+    private static User activeUser() {
+        User user = new User();
+        user.setId(31L);
+        user.setUsername("alice");
+        user.setHashedPassword("hash");
+        user.setStatus("active");
+        user.setIsActive(true);
+        user.setIsDeleted(false);
+        user.setFullName("Alice");
+        user.setEmail("alice@example.test");
+        return user;
     }
 
     private void stubQueries(List<Map<String, Object>> clients, List<Map<String, Object>> credentials) {

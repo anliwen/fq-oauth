@@ -8,7 +8,7 @@ import java.util.List;
 public record OAuthClientUpdate(
         @jakarta.validation.constraints.NotNull Long platformId,
         @NotBlank @Size(max = 128) String name,
-        @NotEmpty List<@NotBlank @Size(max = 2048) String> redirectUris,
+        List<@NotBlank @Size(max = 2048) String> redirectUris,
         @NotEmpty List<@NotBlank @Size(max = 64) String> scopes,
         boolean canIntrospectApiKeys,
         String resource,

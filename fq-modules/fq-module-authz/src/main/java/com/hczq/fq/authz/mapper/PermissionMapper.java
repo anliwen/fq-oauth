@@ -11,7 +11,7 @@ public interface PermissionMapper {
 
     int insert(Permission p);
 
-    /** Only name and sort change; the code, platform, type and parent are fixed once created. */
+    /** Code, type, name and sort may change; the platform and parent are fixed once created. */
     int update(Permission p);
 
     int delete(@Param("id") Long id);

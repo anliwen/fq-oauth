@@ -18,7 +18,7 @@ public class Permission {
     private Long id;
     private Long platformId;
     private Long parentId;
-    /** What the frontend checks to show a page or button, and what the backend annotation checks. Never changes. */
+    /** What the frontend checks to show a page or button, and what the backend annotation checks. */
     private String code;
     private String name;
     private String type;

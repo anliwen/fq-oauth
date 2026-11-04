@@ -10,7 +10,7 @@
     </insert>
 
     <update id="update">
-        UPDATE t_permissions SET name = #{name}, sort = #{sort}, update_time = NOW() WHERE id = #{id}
+        UPDATE t_permissions SET code = #{code}, type = #{type}, name = #{name}, sort = #{sort}, update_time = NOW() WHERE id = #{id}
     </update>
 
     <delete id="delete">

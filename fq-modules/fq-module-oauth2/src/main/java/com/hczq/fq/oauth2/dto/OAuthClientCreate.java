@@ -9,7 +9,7 @@ public record OAuthClientCreate(
         @jakarta.validation.constraints.NotNull Long platformId,
         @NotBlank @Size(max = 128) String name,
         String clientType,
-        @NotEmpty List<@NotBlank @Size(max = 2048) String> redirectUris,
+        List<@NotBlank @Size(max = 2048) String> redirectUris,
         @NotEmpty List<@NotBlank @Size(max = 64) String> scopes,
         boolean canIntrospectApiKeys,
         String clientKind,
